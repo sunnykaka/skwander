@@ -10,16 +10,26 @@ from scrapy.item import Item, Field
 
 class DesignerItem(Item):
 
+    uid = Field()
     name = Field()
     url = Field()
     desc = Field()
     img_url = Field()
     nation = Field()
+    product_detail_urls = Field()
     products = Field()
 
 
 class ProductItem(Item):
 
-    # name = scrapy.Field()
-    pass
+    name = Field()
+    uri = Field()
+    desc = Field()
+    img_url = Field()
+    design_size = Field()
+    sizes = Field()
+    stock = Field()
+    price = Field()
+    original_price = Field()
+
 
