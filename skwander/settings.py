@@ -20,10 +20,11 @@ USER_AGENT = 'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko
 #CONCURRENT_REQUESTS=32
 
 DOWNLOAD_DELAY = 2
-DOWNLOAD_TIMEOUT = 60
+DOWNLOAD_TIMEOUT = 120
 CONCURRENT_REQUESTS_PER_DOMAIN = 4
 #CONCURRENT_REQUESTS_PER_IP=16
 
+FILES_STORE = '/home/liubin/skwander'
 LOG_FILE = '/home/liubin/logs/skwander/scrapy.log'
 LOG_LEVEL = 'DEBUG'
 
@@ -33,10 +34,10 @@ COOKIES_ENABLED = False
 #TELNETCONSOLE_ENABLED=False
 
 # Override the default request headers:
-#DEFAULT_REQUEST_HEADERS = {
-#   'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-#   'Accept-Language': 'en',
-#}
+DEFAULT_REQUEST_HEADERS = {
+    'Accept': '*/*',
+    'Accept-Language': 'zh-CN,zh;q=0.8'
+}
 
 # Enable or disable spider middlewares
 # See http://scrapy.readthedocs.org/en/latest/topics/spider-middleware.html
@@ -56,11 +57,14 @@ COOKIES_ENABLED = False
 #    'scrapy.telnet.TelnetConsole': None,
 #}
 
-IMAGES_STORE = '/home/liubin/skwander/images'
-
+# IMAGES_STORE = '/home/liubin/skwander/images'
 ITEM_PIPELINES = {
-    'scrapy.pipelines.images.ImagesPipeline': 1
+    'skwander.pipelines.CheckItemIntegrityPipeline': 10,
+    'scrapy.pipelines.files.FilesPipeline': 20,
+    'skwander.pipelines.MoveImagePipeline': 30,
+    'skwander.pipelines.DesignerExportPipeline': 40
 }
+
 
 AUTOTHROTTLE_ENABLED = True
 AUTOTHROTTLE_START_DELAY = 5

@@ -4,36 +4,40 @@ import threading
 import logging
 import re
 import lxml.html
+import string
+
+valid_chars = "-_.() %s%s" % (string.ascii_letters, string.digits)
 
 
-class SkWanderUtil(object):
+def get_first(iterable, default=None):
+    if iterable:
+        for item in iterable:
+            return item
+    return default
 
-    @staticmethod
-    def get_first(iterable, default=None):
-        if iterable:
-            for item in iterable:
-                return item
-        return default
 
-    @staticmethod
-    def remove_html_tags(text):
-        if not text:
-            return None
+def remove_html_tags(text):
+    if not text:
+        return None
 
-        return re.sub('<[^<]+?>', '', text)
+    return re.sub('<[^<]+?>', '', text)
 
-    @staticmethod
-    def remove_html_attributes(text):
-        if not text:
-            return None
 
-        html = lxml.html.fromstring(text)
+def remove_html_attributes(text):
+    if not text:
+        return None
 
-        for tag in html.xpath('//*[@class]'):
-            # For each element with a class attribute, remove that class attribute
-            tag.attrib.pop('class')
+    html = lxml.html.fromstring(text)
 
-        return lxml.html.tostring(html)
+    for tag in html.xpath('//*[@class]'):
+        # For each element with a class attribute, remove that class attribute
+        tag.attrib.pop('class')
+
+    return lxml.html.tostring(html)
+
+
+def escape_filename(text):
+    return ''.join(c for c in text if c in valid_chars)
 
 
 class CountDownLatch(object):
