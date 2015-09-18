@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
+import logging
 from openpyxl import Workbook
 from openpyxl.styles import Font, Alignment
 from openpyxl.cell import get_column_letter
-from skwander.spiders.carnet import CarnetSpider
 
 
 def write_designer_excel(designer, file_path, filename):
@@ -27,10 +27,10 @@ def write_designer_excel(designer, file_path, filename):
     write_headers(ws1, designer_header_row, designer_headers)
 
     designer_cols = [1, designer['uid'],
-                     designer['name'], designer['nation'],
+                     designer['name'], designer.get('nation', ''),
                      designer['desc'],
                      designer['img_names'],
-                     designer['img_url'],
+                     designer.get('img_url', ''),
                      designer['url']]
 
     write_content_rows(ws1, designer_cols, designer_headers, designer_content_row, designer_name_col)
@@ -55,13 +55,13 @@ def write_designer_excel(designer, file_path, filename):
         for i, p in enumerate(designer['products']):
             product_cols = [i + 1, p['uid'],
                             p['name'],
-                            p['price'], p['original_price'],
-                            p['current_size'], p['stock'],
-                            format_size_info(p['size_info']), p['design_size'],
+                            p['price'], p.get('original_price', ''),
+                            p.get('current_size', ''), p.get('stock', ''),
+                            p.format_size_info(), p.get('design_size', ''),
                             p['desc'],
                             '\n'.join(p['img_names']),
                             '\n'.join(p['img_url']),
-                            "%s/design/%s" % (CarnetSpider.DOMAIN_PREFIX, p['uri'])]
+                            p.show_url()]
 
             row = i + product_content_row
 
@@ -88,8 +88,5 @@ def write_headers(ws, row, headers):
         cell.alignment = Alignment(horizontal='center')
         ws.column_dimensions[get_column_letter(col)].width = h['width']
 
-
-def format_size_info(size_info):
-    return '\n'.join([u"尺码: %s, 库存: %s" % (x['size'], x['stock']) for x in size_info])
 
 

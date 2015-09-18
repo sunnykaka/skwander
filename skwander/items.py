@@ -8,7 +8,6 @@
 from scrapy.exceptions import DropItem
 from scrapy.item import Item, Field
 
-
 class DesignerItem(Item):
 
     uid = Field()
@@ -23,7 +22,7 @@ class DesignerItem(Item):
     file_urls = Field()
     files = Field()
 
-    can_be_null_fields = ['uid', 'desc', 'products', 'product_detail_urls', 'img_names']
+    can_be_null_fields = ['products', 'product_detail_urls']
 
     def check_integrity(self):
         for k, v in self.items():
@@ -41,7 +40,6 @@ class DesignerItem(Item):
 
                 p.check_integrity()
 
-
 class ProductItem(Item):
 
     uid = Field()
@@ -57,7 +55,7 @@ class ProductItem(Item):
     price = Field()
     original_price = Field()
 
-    can_be_null_fields = ['desc', 'original_price', 'img_names']
+    can_be_null_fields = ['original_price', 'img_names']
 
     def check_integrity(self):
         for k, v in self.items():
@@ -68,4 +66,29 @@ class ProductItem(Item):
             raise DropItem(" field[name=%s, value=%s] can't be none in ProductItem[name=%s, uri=%s] " %
                            (k, str(v), self['name'], self['uri']))
 
+    def show_url(self):
+        from skwander.spiders.carnet import CarnetSpider
+
+        return "%s/design/%s" % (CarnetSpider.DOMAIN_PREFIX, self['uri'])
+
+    def format_size_info(self):
+        return '\n'.join([u"尺码: %s, 库存: %s" % (x['size'], x['stock']) for x in self.get('size_info', [])])
+
+
+class SsenseDesignerItem(DesignerItem):
+
+    can_be_null_fields = DesignerItem.can_be_null_fields + ['img_names', 'img_url', 'nation']
+
+
+class SsenseProductItem(ProductItem):
+
+    sku = Field()
+
+    can_be_null_fields = ProductItem.can_be_null_fields + ['stock', 'current_size']
+
+    def show_url(self):
+        return self['uri']
+
+    def format_size_info(self):
+        return '\n'.join([u"尺码: %s" % x['size'] for x in self.get('size_info', [])])
 

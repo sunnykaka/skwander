@@ -41,14 +41,20 @@ class CarnetSpider(CrawlSpider):
         # 指定的设计师
         # create_designer_rule('lagon\-rouge'),
         # create_designer_rule('antagoniste'),
-        create_designer_rule('antikod\-by\-hapsatousy'),
-        create_designer_rule('claudiapaz'),
-        create_designer_rule('joana\-almagro'),
-        create_designer_rule('livlov'),
-        create_designer_rule('karine\-lecchi'),
-        create_designer_rule('konzeptuell\-1'),
-        create_designer_rule('olivier\-battino'),
-        create_designer_rule('maison\-martin\-morel'),
+        # create_designer_rule('antikod\-by\-hapsatousy'),
+        # create_designer_rule('claudiapaz'),
+        # create_designer_rule('joana\-almagro'),
+        # create_designer_rule('livlov'),
+        # create_designer_rule('karine\-lecchi'),
+        # create_designer_rule('konzeptuell\-1'),
+        # create_designer_rule('olivier\-battino'),
+        # create_designer_rule('maison\-martin\-morel'),
+        create_designer_rule('aziza\-zina'),
+        create_designer_rule('bartosz\-malewicz'),
+        create_designer_rule('lpc'),
+        create_designer_rule('dorv\-clothing'),
+        create_designer_rule('eon3'),
+        create_designer_rule('florence\-parriel'),
     )
 
     """ 本次抓取包含的产品url, 如果不为空则只抓取指定的产品 """
@@ -169,7 +175,7 @@ class CarnetSpider(CrawlSpider):
         designer_info = self.designer_info_dict[response.meta['uid']]
         designer = designer_info.designer
         # crawl all product list page already, try crawl product detail page
-        CarnetSpider.filter_product(designer)
+        CarnetSpider.filter_product(designer, designer['product_detail_urls'])
         product_detail_urls = designer['product_detail_urls']
         if product_detail_urls:
             designer_info.remain_detail_page = len(product_detail_urls)
@@ -290,7 +296,9 @@ class CarnetSpider(CrawlSpider):
             designer['products'] = [detail_url_dict[url] for url in product_detail_urls if url in detail_url_dict]
 
     @staticmethod
-    def filter_product(designer):
+    def filter_product(designer, product_detail_urls):
         if CarnetSpider.include_product_urls:
             designer['product_detail_urls'] = CarnetSpider.include_product_urls
+        else:
+            designer['product_detail_urls'] = product_detail_urls
 

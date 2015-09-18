@@ -33,7 +33,7 @@ class CheckItemIntegrityPipeline(object):
 
         item.check_integrity()
 
-        self.logger.debug("DesignerItem item[name=%s] check integrity ok" % item['name'])
+        self.logger.debug(u"DesignerItem item[name=%s] check integrity ok" % item['name'])
 
         return item
 
@@ -47,7 +47,7 @@ class MoveImagePipeline(object):
         GlobalState.files_store = crawler.settings.get('FILES_STORE')
         dir_name = datetime.datetime.today().strftime('%Y%m%d%H%M')
         GlobalState.data_dir = os.path.join(GlobalState.files_store, dir_name)
-        logging.getLogger(__name__).debug("clean and create directory: %s" % GlobalState.data_dir)
+        logging.getLogger(__name__).debug(u"clean and create directory: %s" % GlobalState.data_dir)
         if os.path.exists(GlobalState.data_dir):
             shutil.rmtree(GlobalState.data_dir)
         os.makedirs(GlobalState.data_dir)
@@ -62,18 +62,24 @@ class MoveImagePipeline(object):
 
         files = item['files']
         image_file_to_name_map = {}
+        image_file_to_product_id_map = {}
+        if item['products']:
+            # 可以用这个在REPL中测试： item = {'products': [{'img_url': ['url1','url2'], 'uid': 'uid1'}]}
+            img_url_tuple_list = [zip(p['img_url'], [p['uid'] for _ in p['img_url']]) for p in item['products']]
+            image_file_to_product_id_map = {x[0]: x[1] for x in [tup for sub in img_url_tuple_list for tup in sub]}
         # move image file to data_dir
         index = 1
         for f in files:
             file_path = os.path.join(GlobalState.files_store, f['path'])
             filename, file_extension = os.path.splitext(file_path)
-            new_filename = "picture%d%s" % (index, file_extension)
+            uid = image_file_to_product_id_map[f['url']] + "_" if f['url'] in image_file_to_product_id_map else ""
+            new_filename = "%spicture%d%s" % (uid, index, file_extension)
             os.rename(file_path, os.path.join(designer_dir_path, new_filename))
             image_file_to_name_map[f['url']] = new_filename
             index += 1
 
         # record img_names
-        item['img_names'] = image_file_to_name_map.get(item['img_url'], '')
+        item['img_names'] = image_file_to_name_map.get(item.get('img_url'), '')
         if item['products']:
             for p in item['products']:
                 p['img_names'] = [image_file_to_name_map.get(img_url, '') for img_url in p['img_url']]
