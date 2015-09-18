@@ -57,7 +57,7 @@ def write_designer_excel(designer, file_path, filename):
                             p['name'],
                             p['price'], p.get('original_price', ''),
                             p.get('current_size', ''), p.get('stock', ''),
-                            p.format_size_info(), p.get('design_size', ''),
+                            p.show_size_info(), p.get('design_size', ''),
                             p['desc'],
                             '\n'.join(p['img_names']),
                             '\n'.join(p['img_url']),

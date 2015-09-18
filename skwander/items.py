@@ -8,6 +8,7 @@
 from scrapy.exceptions import DropItem
 from scrapy.item import Item, Field
 
+
 class DesignerItem(Item):
 
     uid = Field()
@@ -40,6 +41,7 @@ class DesignerItem(Item):
 
                 p.check_integrity()
 
+
 class ProductItem(Item):
 
     uid = Field()
@@ -71,7 +73,7 @@ class ProductItem(Item):
 
         return "%s/design/%s" % (CarnetSpider.DOMAIN_PREFIX, self['uri'])
 
-    def format_size_info(self):
+    def show_size_info(self):
         return '\n'.join([u"尺码: %s, 库存: %s" % (x['size'], x['stock']) for x in self.get('size_info', [])])
 
 
@@ -89,6 +91,6 @@ class SsenseProductItem(ProductItem):
     def show_url(self):
         return self['uri']
 
-    def format_size_info(self):
+    def show_size_info(self):
         return '\n'.join([u"尺码: %s" % x['size'] for x in self.get('size_info', [])])
 

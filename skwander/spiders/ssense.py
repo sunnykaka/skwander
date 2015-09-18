@@ -3,7 +3,6 @@
 import skwander.utils as skutils
 from scrapy.linkextractors import LinkExtractor
 from scrapy.spiders import CrawlSpider, Rule
-from scrapy.exceptions import DropItem
 from scrapy.http import FormRequest, Request
 
 from skwander.items import SsenseDesignerItem, SsenseProductItem
