@@ -42,6 +42,11 @@ class DesignerItem(Item):
                 p.check_integrity()
 
 
+class SsenseDesignerItem(DesignerItem):
+
+    can_be_null_fields = DesignerItem.can_be_null_fields + ['img_names', 'img_url', 'nation']
+
+
 class ProductItem(Item):
 
     uid = Field()
@@ -76,15 +81,14 @@ class ProductItem(Item):
     def show_size_info(self):
         return '\n'.join([u"尺码: %s, 库存: %s" % (x['size'], x['stock']) for x in self.get('size_info', [])])
 
-
-class SsenseDesignerItem(DesignerItem):
-
-    can_be_null_fields = DesignerItem.can_be_null_fields + ['img_names', 'img_url', 'nation']
+    def show_design_size(self):
+        return self.get('design_size', '')
 
 
 class SsenseProductItem(ProductItem):
 
     sku = Field()
+    category_id = Field()
 
     can_be_null_fields = ProductItem.can_be_null_fields + ['stock', 'current_size']
 
@@ -92,5 +96,27 @@ class SsenseProductItem(ProductItem):
         return self['uri']
 
     def show_size_info(self):
-        return '\n'.join([u"尺码: %s" % x['size'] for x in self.get('size_info', [])])
+        return '\n'.join([u"尺码: %s" % (x['size'] + ('(Out of stock)' if x['stock'] == '0' else ''))
+                          for x in self.get('size_info', [])])
+
+    def show_design_size(self):
+        design_size = self['design_size']
+        if not design_size:
+            return ''
+
+        # 确定每一列最长的字段的列宽是多少，然后加上2个空格的长度
+        design_size_arrange_by_column = [list(x) for x in zip(*design_size)]
+        design_size_len = [[len(x) for x in cols] for cols in design_size_arrange_by_column]
+        column_width = [max(cols) + 2 for cols in design_size_len]
+
+        # 一行一行地拼接字符串
+        design_size_table = ''
+        for row in design_size:
+            for col_number, data in enumerate(row):
+                width = column_width[col_number]
+                design_size_table += data.ljust(width)
+            design_size_table += '\n'
+
+        return design_size_table
+
 
