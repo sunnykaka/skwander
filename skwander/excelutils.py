@@ -30,7 +30,8 @@ def write_designer_excel(designer, file_path, filename):
                      designer['desc'],
                      designer['img_names'],
                      designer.get('img_url', ''),
-                     designer['url']]
+                     designer['url']
+                     ] if 'desc' in designer else []
 
     write_content_rows(ws1, designer_cols, designer_headers, designer_content_row, designer_name_col)
 
@@ -54,10 +55,10 @@ def write_designer_excel(designer, file_path, filename):
         for i, p in enumerate(designer['products']):
             product_cols = [i + 1, p['uid'],
                             p['name'],
-                            p['price'], p.get('original_price', ''),
+                            p.get('price', ''), p.get('original_price', ''),
                             p.get('current_size', ''), p.get('stock', ''),
                             p.show_size_info(), p.show_design_size(),
-                            p['desc'],
+                            p.get('desc', ''),
                             '\n'.join(p['img_names']),
                             '\n'.join(p['img_url']),
                             p.show_url()]

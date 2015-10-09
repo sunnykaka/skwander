@@ -19,6 +19,7 @@ class DesignerItem(Item):
     img_names = Field()
     nation = Field()
     product_detail_urls = Field()
+
     products = Field()
     file_urls = Field()
     files = Field()
@@ -32,7 +33,7 @@ class DesignerItem(Item):
             if v is not None:
                 continue
             raise DropItem(" field[name=%s, value=%s] can't be none in DesignerItem[name=%s] " %
-                           (k, str(v), self['name']))
+                           (k, str(v), self.get('name', '')))
 
         if self['products']:
             for p in self['products']:
@@ -45,6 +46,11 @@ class DesignerItem(Item):
 class SsenseDesignerItem(DesignerItem):
 
     can_be_null_fields = DesignerItem.can_be_null_fields + ['img_names', 'img_url', 'nation']
+
+
+class PortraitDesignerItem(DesignerItem):
+
+    can_be_null_fields = ['url', 'desc', 'img_url', 'img_names', 'nation', 'product_detail_urls']
 
 
 class ProductItem(Item):
@@ -71,12 +77,12 @@ class ProductItem(Item):
             if v is not None:
                 continue
             raise DropItem(" field[name=%s, value=%s] can't be none in ProductItem[name=%s, uri=%s] " %
-                           (k, str(v), self['name'], self['uri']))
+                           (k, str(v), self.get('name', ''), self.get('uri', '')))
 
     def show_url(self):
         from skwander.spiders.carnet import CarnetSpider
 
-        return "%s/design/%s" % (CarnetSpider.DOMAIN_PREFIX, self['uri'])
+        return "%s/design/%s" % (CarnetSpider.DOMAIN_PREFIX, self.get('uri', ''))
 
     def show_size_info(self):
         return '\n'.join([u"尺码: %s, 库存: %s" % (x['size'], x['stock']) for x in self.get('size_info', [])])
@@ -120,3 +126,12 @@ class SsenseProductItem(ProductItem):
         return design_size_table
 
 
+class PortraitProductItem(ProductItem):
+
+    can_be_null_fields = ProductItem.can_be_null_fields + ['desc', 'design_size', 'design_size', 'current_size',
+                                                           'stock', 'price']
+
+    def show_url(self):
+        from skwander.spiders.portrait import PortraitSpider
+
+        return '%s/collection/view-all/%s' % (PortraitSpider.DOMAIN_PREFIX, self.get('uri', ''))
