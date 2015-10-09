@@ -49,12 +49,15 @@ class CarnetSpider(CrawlSpider):
         # create_designer_rule('konzeptuell\-1'),
         # create_designer_rule('olivier\-battino'),
         # create_designer_rule('maison\-martin\-morel'),
-        create_designer_rule('aziza\-zina'),
-        create_designer_rule('bartosz\-malewicz'),
-        create_designer_rule('lpc'),
-        create_designer_rule('dorv\-clothing'),
-        create_designer_rule('eon3'),
-        create_designer_rule('florence\-parriel'),
+        # create_designer_rule('aziza\-zina'),
+        # create_designer_rule('bartosz\-malewicz'),
+        # create_designer_rule('lpc'),
+        # create_designer_rule('dorv\-clothing'),
+        # create_designer_rule('eon3'),
+        # create_designer_rule('florence\-parriel'),
+        create_designer_rule('tramp\-in\-disguise'),
+        create_designer_rule('izar'),
+        create_designer_rule('jessica\-joyce'),
     )
 
     """ 本次抓取包含的产品url, 如果不为空则只抓取指定的产品 """

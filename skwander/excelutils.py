@@ -11,7 +11,6 @@ def write_designer_excel(designer, file_path, filename):
     excel_path = '%s.xlsx' % file_path
     wb = Workbook()
     ws1 = wb.active
-    ws1.title = filename
 
     # designer info
     designer_header_row = 1
