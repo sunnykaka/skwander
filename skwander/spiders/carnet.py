@@ -144,13 +144,6 @@ class CarnetSpider(CrawlSpider):
     @staticmethod
     def retrieve_product_list_data_from_json(response, designer_info):
 
-        def put_and_check_list(a, element):
-            if element in a:
-                return False
-            else:
-                a.append(element)
-                return True
-
         designer = designer_info.designer
         json_resp = json.loads(response.body_as_unicode())
         data = json_resp.get('data')
@@ -168,7 +161,7 @@ class CarnetSpider(CrawlSpider):
 
         # remove if uri duplicates
         urls = []
-        products = [p for p in products if put_and_check_list(urls, p['uri'])]
+        products = [p for p in products if skutils.put_and_check_list(urls, p['uri'])]
         designer['product_detail_urls'].extend(urls)
 
         designer_info.total = data['total']

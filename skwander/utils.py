@@ -5,6 +5,8 @@ import logging
 import re
 import lxml.html
 import string
+import urlparse
+
 
 valid_chars = "-_.() %s%s" % (string.ascii_letters, string.digits)
 
@@ -38,6 +40,19 @@ def remove_html_attributes(text):
 
 def escape_filename(text):
     return ''.join(c for c in text if c in valid_chars)
+
+
+def retrieve_url_param(url, param):
+    parsed = urlparse.urlparse(url)
+    return urlparse.parse_qs(parsed.query)[param][0]
+
+
+def put_and_check_list(a, element):
+    if element in a:
+        return False
+    else:
+        a.append(element)
+        return True
 
 
 class CountDownLatch(object):

@@ -53,6 +53,11 @@ class PortraitDesignerItem(DesignerItem):
     can_be_null_fields = ['url', 'desc', 'img_url', 'img_names', 'nation', 'product_detail_urls']
 
 
+class CeremonyDesignerItem(DesignerItem):
+
+    can_be_null_fields = DesignerItem.can_be_null_fields + ['img_names', 'img_url', 'nation', 'desc']
+
+
 class ProductItem(Item):
 
     uid = Field()
@@ -135,3 +140,19 @@ class PortraitProductItem(ProductItem):
         from skwander.spiders.portrait import PortraitSpider
 
         return '%s/collection/view-all/%s' % (PortraitSpider.DOMAIN_PREFIX, self.get('uri', ''))
+
+
+class CeremonyProductItem(ProductItem):
+
+    can_be_null_fields = ProductItem.can_be_null_fields + ['stock', 'current_size']
+
+    def show_url(self):
+        from skwander.spiders.ceremony import CeremonySpider
+
+        return "%s/%s" % (CeremonySpider.DOMAIN_PREFIX, self.get('uri', ''))
+
+    def show_size_info(self):
+        return '\n'.join([u"产品ID: %s, %s" %
+                          (x['product_id'], ' '.join([u"%s: %s" % (attr[0], attr[1]) for attr in x['attrs']]))
+                          for x in self.get('size_info', [])])
+
