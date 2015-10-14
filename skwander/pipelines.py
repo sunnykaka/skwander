@@ -74,6 +74,7 @@ class MoveImagePipeline(object):
             filename, file_extension = os.path.splitext(file_path)
             uid = image_file_to_product_id_map[f['url']] + "_" if f['url'] in image_file_to_product_id_map else ""
             new_filename = "%spicture%d%s" % (uid, index, file_extension)
+            self.logger.debug(u"move file %s to %s" % (file_path, os.path.join(designer_dir_path, new_filename)))
             os.rename(file_path, os.path.join(designer_dir_path, new_filename))
             image_file_to_name_map[f['url']] = new_filename
             index += 1

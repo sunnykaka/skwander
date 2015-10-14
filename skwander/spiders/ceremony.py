@@ -19,8 +19,10 @@ class DesignerInfo(object):
 
 
 def create_designer_rule(designer_uri):
-    return Rule(LinkExtractor(allow='.*products.asp.+&designerid=' + designer_uri),
-                callback='parse_designer', follow=False)
+    return Rule(LinkExtractor(
+            allow='.*products.asp\?menuid=2&designerid=' + designer_uri + '&view=all$',
+            process_value=lambda x: x + '&view=all'),
+        callback='parse_designer', follow=False)
 
 
 class CeremonySpider(CrawlSpider):
@@ -32,12 +34,16 @@ class CeremonySpider(CrawlSpider):
     start_urls = ['%s/entry.asp?cat=designers' % DOMAIN_PREFIX]
 
     rules = (
-        create_designer_rule('6'),
+        create_designer_rule('6'),      # Opening Ceremony
+        create_designer_rule('1979'),   # Adam Selman
+        create_designer_rule('1377'),   # Deer Dana
+        create_designer_rule('953'),    # Jacquemus
+        create_designer_rule('1363'),   # Marques Almeida
     )
 
     """ 本次抓取包含的产品url, 如果不为空则只抓取指定的产品 """
-    include_product_urls = ['products.asp?menuid=1&designerid=6&productid=150108']
-    # include_product_urls = []
+    # include_product_urls = ['products.asp?menuid=2&designerid=6&productid=142931']
+    include_product_urls = []
 
     def __init__(self, *a, **kw):
         super(CeremonySpider, self).__init__(*a, **kw)
@@ -52,7 +58,7 @@ class CeremonySpider(CrawlSpider):
         designer = CeremonyDesignerItem()
 
         uid = skutils.retrieve_url_param(response.url, 'designerid')
-        name = skutils.get_first(response.xpath('//div[@class="productName"]/a/text()').extract())
+        name = response.xpath('//div[@class="productName"]/a/text()').extract_first()
 
         designer['uid'] = uid
         designer['name'] = name.strip() if name else ""
@@ -92,7 +98,7 @@ class CeremonySpider(CrawlSpider):
         if product_detail_urls:
             designer_info.remain_detail_page = len(product_detail_urls)
             for detail_url in product_detail_urls:
-                yield self.make_products_detail_request(detail_url, None, designer)
+                yield self.make_products_detail_request(detail_url, designer)
         else:
             # designer don't have products
             yield designer
@@ -116,12 +122,12 @@ class CeremonySpider(CrawlSpider):
     """
     构造产品详情的请求
     """
-    def make_products_detail_request(self, detail_url, origin_detail_url, designer):
+    def make_products_detail_request(self, detail_url, designer):
         self.logger.debug('schedule to visit product detail page, designer name: %s, detail url: %s',
                           designer['name'], detail_url)
         return Request(url='%s/%s' % (CeremonySpider.DOMAIN_PREFIX, detail_url),
                        callback=self.parse_product_detail,
-                       meta={'uid': designer['uid'], 'detail_url': detail_url, 'origin_detail_url': origin_detail_url},
+                       meta={'uid': designer['uid'], 'detail_url': detail_url},
                        method='GET',
                        errback=self.err_back)
 
@@ -132,22 +138,24 @@ class CeremonySpider(CrawlSpider):
         designer_info = self.designer_info_dict[response.meta['uid']]
         designer = designer_info.designer
         detail_url = response.meta['detail_url']
-        origin_detail_url = response.meta['origin_detail_url']
         self.logger.info('parse product detail[%s] response, response status: %d', detail_url, response.status)
         product = CeremonyProductItem()
 
         uid = skutils.retrieve_url_param(response.url, 'productid')
         product_nodes = response.xpath('//div[@class="product_right_info"]')
-        name = skutils.get_first(product_nodes.xpath('span[@class="pname"]/text()').extract())
-        price = skutils.get_first(product_nodes.xpath('div[@class="productprice"]/text()').extract())
+        name = product_nodes.xpath('span[@class="pname"]/text()').extract_first()
+        price = product_nodes.xpath('div[@class="productprice"]/text()').extract_first().strip()
+        original_price = None
+        if price == '$':
+            price = product_nodes.xpath('div[@class="productprice"]/span[2]/text()').extract_first()
+            original_price = '$ ' + product_nodes.xpath('div[@class="productprice"]/span[1]/text()').extract_first()
 
         size_lis = product_nodes.xpath('//ul[@class="ul_SizesColors"]/li')
-
-        size_nodes = [{'attr_name': re.search('^li_(\w+) li', skutils.get_first(li.xpath('@class').extract())).groups()[0],
-                       'attr_value': skutils.get_first(li.xpath('@title').extract()),
-                       'product_id': skutils.get_first(li.xpath('span[@class="productid"]/text()').extract()),
+        size_nodes = [{'attr_name': re.search('^li_(\w+) li', li.xpath('@class').extract_first()).groups()[0],
+                       'attr_value': li.xpath('@title').extract_first(),
+                       'product_id': li.xpath('span[@class="productid"]/text()').extract_first(),
                        } for li in size_lis]
-        self.logger.debug("size_nodes: %s", str(size_nodes))
+        # self.logger.debug("size_nodes: %s", str(size_nodes))
 
         def reduce_acc(acc, size_node):
             product_id = size_node['product_id']
@@ -159,32 +167,23 @@ class CeremonySpider(CrawlSpider):
             return acc
 
         size_info = reduce(reduce_acc, size_nodes, {}).values()
-        self.logger.debug("size_info: %s", str(size_info))
+        # self.logger.debug("size_info: %s", str(size_info))
 
         desc_node = product_nodes.xpath('//div[@class="plproducttab plproductdetails"]')
         desc = '\n'.join(desc_node.xpath('text()').extract()).strip()
-        # 如果desc为空，这个产品详情需要重定向到默认的sku
-        if not origin_detail_url and not desc:
-            first_sku = size_info[0]
-            redirect_detail_url = "%s&sproductid=%s%s" % (
-                detail_url,
-                first_sku['product_id'],
-                ''.join(['&%s=%s' % (attr[0], attr[1]) for attr in first_sku['attrs']]))
-            self.logger.debug("redirect to detail page: %s", redirect_detail_url)
-            return self.make_products_detail_request(redirect_detail_url, detail_url, designer)
+        desc += '\n' + desc_node.xpath('//span[@class="smallfont"]/text()').extract_first().strip()
 
-        desc += '\n' + skutils.get_first(desc_node.xpath('//span[@class="smallfont"]/text()').extract()).strip()
         design_size = '\n'.join(product_nodes.xpath('//div[@class="plproducttab plproductdescription"]/p/text()').extract())
-
 
         img_url = response.xpath('//div[@class="pili"]/img/@src').extract()
 
-        product['uri'] = detail_url if origin_detail_url is None else origin_detail_url
+        product['uri'] = detail_url
         product['name'] = name.strip() if name else ""
-        product['price'] = price.strip() if price else ""
+        product['price'] = price
+        product['original_price'] = original_price
         product['size_info'] = size_info
-        product['desc'] = skutils.remove_html_attributes(desc)
-        product['design_size'] = skutils.remove_html_attributes(design_size)
+        product['desc'] = desc
+        product['design_size'] = design_size
         product['img_url'] = [x.replace('menu_', '') for x in img_url]
         product['uid'] = uid
 
