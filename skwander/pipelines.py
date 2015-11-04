@@ -74,6 +74,11 @@ class MoveImagePipeline(object):
             filename, file_extension = os.path.splitext(file_path)
             uid = image_file_to_product_id_map[f['url']] + "_" if f['url'] in image_file_to_product_id_map else ""
             new_filename = "%spicture%d%s" % (uid, index, file_extension)
+
+            if not os.path.isfile(file_path):
+                self.logger.warn(u"move image file failed, file not exist, product id[%s], file[%s]" % (uid, file_path))
+                continue
+
             os.rename(file_path, os.path.join(designer_dir_path, new_filename))
             image_file_to_name_map[f['url']] = new_filename
             index += 1
@@ -82,7 +87,7 @@ class MoveImagePipeline(object):
         item['img_names'] = image_file_to_name_map.get(item.get('img_url'), '')
         if item['products']:
             for p in item['products']:
-                p['img_names'] = [image_file_to_name_map.get(img_url, '') for img_url in p['img_url']]
+                p['img_names'] = [image_file_to_name_map.get(img_url, 'DownloadFailed') for img_url in p['img_url']]
 
         return item
 

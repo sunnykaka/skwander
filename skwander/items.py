@@ -57,6 +57,10 @@ class CeremonyDesignerItem(DesignerItem):
 
     can_be_null_fields = DesignerItem.can_be_null_fields + ['img_names', 'img_url', 'nation', 'desc']
 
+class LineDesignerItem(DesignerItem):
+
+    can_be_null_fields = ['url', 'desc', 'img_url', 'img_names', 'nation', 'product_detail_urls']
+
 
 class ProductItem(Item):
 
@@ -156,3 +160,13 @@ class CeremonyProductItem(ProductItem):
                           (x['product_id'], ' '.join([u"%s: %s" % (attr[0], attr[1]) for attr in x['attrs']]))
                           for x in self.get('size_info', [])])
 
+
+class LineProductItem(ProductItem):
+
+    can_be_null_fields = ProductItem.can_be_null_fields + ['design_size', 'size_info', 'stock']
+
+    def show_url(self):
+        return self.get('uri', '')
+
+    def show_size_info(self):
+        return self.get('size_info', '')
